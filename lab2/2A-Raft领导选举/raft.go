@@ -436,8 +436,17 @@ func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 			currentLogTerm = rf.logs[currentLogIndex].Term
 		
 		}
-		//论文中第二个要求：候选人的currentLogTerm和currentLogIndex都必须大于等于自己的
-		if args.LastLogTerm < currentLogTerm || args.LastLogIndex < currentLogIndex{
+		// //论文中第二个要求：候选人的currentLogTerm和currentLogIndex都必须大于等于自己的
+		// if args.LastLogTerm < currentLogTerm || args.LastLogIndex < currentLogIndex{
+		// 	reply.VoteState = Expire
+		// 	reply.VoteGranted = false
+		// 	reply.Term = rf.currentTerm
+		// 	return
+		// }
+		//论文中第二个要求：候选人的日志至少和自己一样新。优先选任期大的，
+		//如果任期相同，则说明同时有两个竞争者，两个一样的网络分区
+		//那么这个时候再看日志条目数，此时args的日志下标就不能低于当前节点的日志下标。
+		if args.LastLogTerm < currentLogTerm || (len(rf.logs) > 0 && args.LastLogTerm == rf.logs[len(rf.logs)-1].Term && args.LastLogIndex < len(rf.logs)){
 			reply.VoteState = Expire
 			reply.VoteGranted = false
 			reply.Term = rf.currentTerm
