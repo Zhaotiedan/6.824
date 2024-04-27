@@ -242,6 +242,7 @@ func (rf *Raft) ticker() {
 			switch rf.status {
 			case Follower://follwer:变成竞选者
 				rf.status = Candidate
+				fallthrough
 			case Candidate://candidate:发起投票
 
 				//初始化自身任期，并把票投给自己
@@ -262,7 +263,7 @@ func (rf *Raft) ticker() {
 					voteArgs := RequestVoteArgs{
 						Term: rf.currentTerm,
 						CandidateId: rf.me,
-						LastLogIndex: len(rf.logs)-1,
+						LastLogIndex: len(rf.logs),
 						LastLogTerm: 0,//为什么不直接写：rf.logs[len(rf.logs)-1].Term,怕len为0导致数组访问越界
 					}
 					if(len(rf.logs) > 0){
